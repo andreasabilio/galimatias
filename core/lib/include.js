@@ -21,10 +21,21 @@ var include = module.exports = function(_options){
     options = Object.assign({}, defaults, _options);
   }
 
+  var files = fs.readdirSync(options.path);
+
+  var _files = files;
+
+  // XXX
+  console.log(' ');
+  console.log('--- files:', _files);
+  console.log('--- index:', -1 !== _files.indexOf('index.js'));
+
+  if( -1 !== _files.indexOf('index.js') )
+    return require(options.path + '/index.js');
+
 
   // Get files in path
-  return fs.readdirSync(options.path)
-    .reduce(function(out, file){
+  return files.reduce(function(out, file){
 
       // Get file path
       var filepath = options.path + '/' + file;
