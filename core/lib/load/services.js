@@ -139,15 +139,12 @@ module.exports = function(path, doFork){
   //  console.log(_services);
   //});
 
-  var _services = requireAll({
-    dirname: path,
-    recursive: true
+
+  // DEV
+  var _services = include({
+    path: path,
+    depth: 1
   });
-
-  //var _services = include(path);
-
-  // XXX
-  //console.log('_services:', _services);
 
   return _.forEach(_services, function(service){
     service.init();
