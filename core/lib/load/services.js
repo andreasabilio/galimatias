@@ -1,5 +1,6 @@
 
 var requireAll = require('require-all');
+var include    = require('../include');
 var semver     = require('semver');
 var _          = require('lodash');
 
@@ -134,11 +135,19 @@ module.exports = function(path, doFork){
     .map(loader.process)
     .reduce(loader.queue, []);
 
-  loader.run(services).then(function(_services){
-    console.log(_services);
+  //loader.run(services).then(function(_services){
+  //  console.log(_services);
+  //});
+
+  var _services = requireAll({
+    dirname: path,
+    recursive: true
   });
 
-  var _services = requireAll(path);
+  //var _services = include(path);
+
+  // XXX
+  //console.log('_services:', _services);
 
   return _.forEach(_services, function(service){
     service.init();

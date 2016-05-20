@@ -24,11 +24,14 @@ module.exports = {
     // Load and initialize core services
     S.services.core = S.runInS(S.load.services, S.config.paths.core.services, false);
 
-
-
-
-
     // XXX
-    console.log('S:', S.services.core);
+    console.log('S:', S);
+    //console.log('S:', S.services.core);
+
+    var included = S.include({
+      path: path.resolve(__dirname, '../level0'),
+      depth: 2
+    });
+    console.log('INCLUDED:', included);
   }
 };
