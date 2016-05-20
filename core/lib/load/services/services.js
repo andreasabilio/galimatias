@@ -1,8 +1,11 @@
 
-var requireAll = require('require-all');
-var include    = require('../include');
+//var requireAll = require('require-all');
+var DepGraph   = require('dependency-graph').DepGraph;
+var include    = require('../../include');
 var semver     = require('semver');
 var _          = require('lodash');
+
+var depGraph = new DepGraph();
 
 
 // Primate functions
@@ -126,14 +129,20 @@ module.exports = function(path, doFork){
   //console.log('>>>', arguments);
 
 
-  //// Get service candidates
-  //var candidates = _.assign({}, requireAll(path));
-  //
-  //
-  //// Load services
-  //var services =_.reduce(candidates, loader.validate, [])
-  //  .map(loader.process)
-  //  .reduce(loader.queue, []);
+  // Get service candidates
+  var candidates = include({
+    path: path,
+    depth: 1
+  });
+
+
+  // Load services
+  var services =_.reduce(candidates, loader.validate, [])
+    .map(loader.process)
+    .reduce(loader.queue, []);
+
+  // XXX
+  console.log('*** Services:', services);
 
   //loader.run(services).then(function(_services){
   //  console.log(_services);
@@ -147,7 +156,7 @@ module.exports = function(path, doFork){
   });
 
   return _.forEach(_services, function(service){
-    service.init();
+    //service.init();
   });
 
 };

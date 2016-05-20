@@ -1,1 +1,7 @@
-{}
+{
+  "name": "Small Resources",
+  "version": "0.1.0",
+  "dependencies": {
+    "store": "0.1.0"
+  }
+}
