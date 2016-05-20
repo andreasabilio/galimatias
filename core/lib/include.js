@@ -21,10 +21,16 @@ var include = module.exports = function(_options){
     options = Object.assign({}, defaults, _options);
   }
 
+  // Get the files in the path
+  var files = fs.readdirSync(options.path);
+
+  // Detect modules with index
+  if( -1 !== files.indexOf('index.js') )
+    return require(options.path + '/index.js');
+
 
   // Get files in path
-  return fs.readdirSync(options.path)
-    .reduce(function(out, file){
+  return files.reduce(function(out, file){
 
       // Get file path
       var filepath = options.path + '/' + file;

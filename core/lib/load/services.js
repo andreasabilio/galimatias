@@ -126,14 +126,14 @@ module.exports = function(path, doFork){
   //console.log('>>>', arguments);
 
 
-  // Get service candidates
-  var candidates = _.assign({}, requireAll(path));
-
-
-  // Load services
-  var services =_.reduce(candidates, loader.validate, [])
-    .map(loader.process)
-    .reduce(loader.queue, []);
+  //// Get service candidates
+  //var candidates = _.assign({}, requireAll(path));
+  //
+  //
+  //// Load services
+  //var services =_.reduce(candidates, loader.validate, [])
+  //  .map(loader.process)
+  //  .reduce(loader.queue, []);
 
   //loader.run(services).then(function(_services){
   //  console.log(_services);
