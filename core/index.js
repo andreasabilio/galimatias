@@ -29,8 +29,8 @@ var core = module.exports = {
     // XXX
     console.log(' ');
     console.log('------------------------------------------');
-    console.log('S:', S);
-    console.log('S:', S.services.core);
+    //console.log('S:', S);
+    console.log('Core Services:', S.services.core);
 
     // DEV
     return S;

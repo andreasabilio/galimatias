@@ -22,9 +22,13 @@ var S = {
 
   },
 
-  runInAlowed: function(){
+  runInCage: function(fn, ctx){
+
+    return co(fn.bind(ctx, this));
+
+
     // TODO
-    return S.runInS.apply(null, arguments);
+    //return S.runInS.apply(null, arguments);
   }
 };
 

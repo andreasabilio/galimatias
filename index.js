@@ -13,6 +13,7 @@ core.init(config).then(function(S){
   console.log('______________________________________________');
   console.log(' ');
   S.log('info', 'SmallCLoud has started');
+  console.log(' ');
 }).catch(function(e){
   console.log('ERROR:', e.trace);
 });

@@ -1,7 +1,10 @@
 
-module.exports = function(){
+module.exports = function*(S){
 
   // XXX
-  console.log('>>> Running core service init');
+  console.log('>>> Running core api service init');
+  //console.log('>>>', S);
+
+  return 'hello world!';
 
 };
