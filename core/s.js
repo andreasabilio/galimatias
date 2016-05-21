@@ -28,7 +28,8 @@ var S = {
       'runInS',
       'runInCage',
       'load',
-      'include'
+      'include',
+      'config'
     ]);
 
     return co(fn.bind(ctx, _S));

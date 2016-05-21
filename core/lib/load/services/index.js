@@ -12,6 +12,7 @@ var initSrv = co.wrap(function*(service){
 
   // XXX
   //console.log('+++', service.id, service);
+  console.log(' ');
 
   // Run service init
   var exitCode = yield S.runInCage(service.init, _.omit(service, ['init', 'activable', 'active']));
@@ -27,7 +28,15 @@ var initSrv = co.wrap(function*(service){
 
   delete service.init;
 
-  service.api = service.api || {isApi: true};
+  // DEV
+  var apiBase = {
+    fetch: function(){},
+    create: function(){},
+    update: function(){},
+    remove: function(){}
+  };
+
+  service.api = service.api || apiBase;
 
   return _.extend({}, service.api, {
     id: service.id,
