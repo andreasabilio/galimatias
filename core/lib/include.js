@@ -19,8 +19,8 @@ var walker = function(out, file){
     if( null === this.depth || 0 < this.depth){
       var name = file.split('.')[0];
       var conf = Object.assign({}, this);
-      conf.path  = filepath;
-      conf.depth = (this.depth)? this.depth - 1 : null;
+          conf.path  = filepath;
+          conf.depth = (this.depth)? this.depth - 1 : null;
 
       out[name] = include(conf);
     }
@@ -32,7 +32,6 @@ var walker = function(out, file){
   }
 
   return out;
-
 };
 
 
