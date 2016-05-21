@@ -32,10 +32,6 @@ var S = {
     ]);
 
     return co(fn.bind(ctx, _S));
-
-
-    // TODO
-    //return S.runInS.apply(null, arguments);
   }
 };
 

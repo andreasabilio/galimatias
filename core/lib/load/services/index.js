@@ -11,10 +11,10 @@ var initSrv = co.wrap(function*(service){
   var S = this;
 
   // XXX
-  //console.log('+++', service.id, service.manifest.name);
+  //console.log('+++', service.id, service);
 
   // Run service init
-  var exitCode = yield S.runInCage(service.init, _.omit(service, 'init'));
+  var exitCode = yield S.runInCage(service.init, _.omit(service, ['init', 'activable', 'active']));
 
   var logMsg = [
     'Service',
