@@ -19,7 +19,7 @@ var initSrv = co.wrap(function*(service){
   var logMsg = [
     'Service',
     service.manifest.name,
-    'has been started. ',
+    'has been started.',
     exitCode
   ].join(' ');
 
@@ -29,48 +29,17 @@ var initSrv = co.wrap(function*(service){
 
   service.api = service.api || {isApi: true};
 
-
-  return _.pick(service, ['manifest', 'api', 'id']);
+  return _.extend({}, service.api, {
+    id: service.id,
+    name: service.manifest.name,
+    version: service.manifest.version
+  });
+  //return _.pick(service, ['manifest', 'api', 'id']);
 });
 
 var buildMap = function(srvMap, service){
-
   srvMap[service.id] = service;
-
   return srvMap;
-
-
-  //// XXX
-  //console.log('   SRV:', service);
-  ////console.log('MAPPER:', arguments);
-  //
-  //var service.then(function(srv){
-  //  //console.log('///', srv);
-  //  return srv;
-  //});
-
-
-  //// XXX
-  ////console.log(' ID:', _service.id);
-  //
-  //srvMap.test = {};
-  //
-  //srvMap.test.xxx = 'yyy';
-  //
-  //srvMap.test[_service.id] = _service;
-  //
-  //// XXX
-  //console.log('--- srvMap:', srvMap);
-  ////console.log('||| service:', _service);
-  //
-  //return srvMap;
-
-
-  //return service.then(function(srv){
-  //  console.log('%%%', srvMap);
-  //  srvMap[srv.id] = srv;
-  //  return srv;
-  //});
 };
 
 

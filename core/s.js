@@ -24,7 +24,14 @@ var S = {
 
   runInCage: function(fn, ctx){
 
-    return co(fn.bind(ctx, this));
+    var _S = _.omit(this, [
+      'runInS',
+      'runInCage',
+      'load',
+      'include'
+    ]);
+
+    return co(fn.bind(ctx, _S));
 
 
     // TODO
