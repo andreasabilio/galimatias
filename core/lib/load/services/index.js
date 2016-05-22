@@ -65,7 +65,7 @@ module.exports = function*(path, doFork){
 
   var serviceGraph  = _.reduce(validServices, graph.process, {});
 
-  var serviceApis =  serviceGraph.run();
+  var serviceApis = yield serviceGraph.run();
 
 
   //var installedServices = _.mapValues(validServices, graph.process);
@@ -83,13 +83,13 @@ module.exports = function*(path, doFork){
   //console.log('*** valid:', validServices);
   //console.log('*** installed:', installedServices);
   //console.log('QQQ serviceQueue:', serviceQueue);
-  console.log('AAA serviceApis:', serviceApis);
-  console.log('GGG serviceGraph:', serviceGraph);
+  //console.log('AAA serviceApis:', serviceApis);
+  //console.log('GGG serviceGraph:', serviceGraph);
 
 
   // Return service apis
   // TODO: possible mismatch k -> v
   //return _.zipObject(Object.keys(installedServices), serviceApis);
-  return {};
-
+  //return {};
+  return serviceApis;
 };

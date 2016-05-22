@@ -1,8 +1,10 @@
 
 var dispatcher = require('./dispatcher');
+var Promise    = require('bluebird');
 var DepGraph   = require('dependency-graph').DepGraph;
 var include    = require('../../include');
 var semver     = require('semver');
+var co         = require('co');
 var _          = require('lodash');
 
 var depGraph      = new DepGraph();
@@ -32,7 +34,7 @@ var initSrvApi = function(service){
 
 
 
-var walker = function(service){
+var __walker = function(service){
 
   //return {isApi: true, id: service.id};
 
@@ -63,6 +65,8 @@ var walker = function(service){
 
     });
 };
+
+
 
 
 
@@ -224,10 +228,8 @@ var graph = module.exports = {
   },
 
 
-
+  // TODO: remove
   queue: function(queue, service){
-
-
 
     // Get init index of service init
     var _index = depGraph.overallOrder().indexOf(service.id);
@@ -242,15 +244,50 @@ var graph = module.exports = {
 
   run: function(){
 
-    var rootId  = depGraph.overallOrder().shift();
-    var rootSrv = this.services[rootId];
+    // init local api store
+    var api = {};
+
+    var services = this.services;
+    var rootId   = depGraph.overallOrder().shift();
+    var rootSrv  = this.services[rootId];
+    var ctx      = {isInitCtx: true};
+    var args     = {isInitArgs: true};
+
+    var walker = function(service){
+
+      return co( rootSrv.init.bind(ctx, args) ).then(function(statusCode){
+
+        // XXX
+        console.log('___ service init done:', rootId, statusCode);
+        return {isServiceApi: true, id: rootId};
+
+      }).then(function(srvApi){
+
+        // XXX
+        console.log('___ api:', rootId, srvApi);
+
+        var dependencies = depGraph.dependantsOf(rootId);
+
+        // XXX
+        //console.log('___ deps:', depGraph);
+        console.log('___ deps:', rootId, rootSrv);
+        console.log('___ deps:', rootId, dependencies);
+
+
+        // Register api
+        api[rootId] = srvApi;
+
+        return api;
+      });
+    };
 
     // XXX
-    console.log('___ run:', this);
-    console.log('___ run:', rootSrv);
-    console.log('___ run:', rootId);
+    //console.log('___ run:', this);
+    //console.log('___ run:', rootSrv);
+    //console.log('___ run:', rootId);
 
-    return {isServiceApi: true, id: rootSrv.id};
+    //return this.api;
 
+    return walker(services[rootId]);
   }
 };
