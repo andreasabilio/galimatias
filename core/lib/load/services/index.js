@@ -1,98 +1,88 @@
 
-var include = require('../../include');
-var loader  = require('./loader');
-var co      = require('co');
-var _       = require('lodash');
+var dispatcher = require('./dispatcher');
+var include    = require('../../include');
+var loader     = require('./loader');
+var graph      = require('./graph');
+var async      = require('async');
+var co         = require('co');
+var _          = require('lodash');
 
 
-var initSrv = co.wrap(function*(service){
-
-  // Grab S
-  var S = this;
-
-  // XXX
-  //console.log('+++', service.id, service);
-  console.log(' ');
-
-  // Run service init
-  var exitCode = yield S.runInCage(service.init, _.omit(service, ['init', 'activable', 'active']));
-
-  var logMsg = [
-    'Service',
-    service.manifest.name,
-    'has been started.',
-    exitCode
-  ].join(' ');
-
-  S.log('debug', logMsg);
-
-  delete service.init;
-
-  // DEV
-  var apiBase = {
-    fetch: function(){},
-    create: function(){},
-    update: function(){},
-    remove: function(){}
-  };
-
-  service.api = service.api || apiBase;
-
-  return _.extend({}, service.api, {
-    id: service.id,
-    name: service.manifest.name,
-    version: service.manifest.version
-  });
-  //return _.pick(service, ['manifest', 'api', 'id']);
-});
-
-var buildMap = function(srvMap, service){
-  srvMap[service.id] = service;
-  return srvMap;
-};
+//var initSrv = function(service){
+//
+//  // XXX
+//  //console.log('+++', service.id, x);
+//  console.log(' ');
+//
+//  // Run init
+//  return dispatcher.run.generator({
+//    ctx:  {ctx: true},
+//    gen:  service.init,
+//    args: _.omit(service, ['init', 'activable', 'active'])
+//  })
+//    .then(initSrvApi.bind(service))
+//    .tap(function(srvApi){
+//
+//    var logMsg = [
+//      'Service',
+//      srvApi.manifest.name,
+//      'has been started.'
+//    ].join(' ');
+//
+//
+//    // Log service initialization
+//    S.log('debug', logMsg);
+//
+//  });
+//};
+//
+//var initSrvApi = function(service){
+//
+//  // DEV
+//  var apiBase = {
+//    fetch: function(){},
+//    create: function(){},
+//    update: function(){},
+//    remove: function(){}
+//  };
+//
+//  // Register service api
+//  service.api = service.api || apiBase;
+//
+//  return _.extend({}, service.api, {
+//    id:      service.id,
+//    name:    service.manifest.name,
+//    version: service.manifest.version
+//  });
+//};
 
 
 module.exports = function*(path, doFork){
 
-  // XXX
-  //console.log('>>> sssss', this);
+  // Setup
+  var candidates        = include({path: path, depth: 1});
+  var validServices     = _.reduce(candidates, graph.validate, {});
+  var installedServices = _.mapValues(validServices, graph.process);
+  var serviceQueue      = _.reduce(installedServices, graph.queue, []);
+  var serviceApis       = _.map(serviceQueue, graph.run);
 
-
-  // Get service candidates
-  var candidates = include({
-    path: path,
-    depth: 1
-  });
-
-
-  var services = yield _.reduce(candidates, loader.validate, [])
-    .map(loader.process)
-    .reduce(loader.queue, [])
-    .map(initSrv, this);
-
+  //// Setup
+  //var candidates        = include({path: path, depth: 1});
+  //var validServices     = _.reduce(candidates, loader.validate, {});
+  //var installedServices = _.mapValues(validServices, loader.process);
+  //var serviceQueue      = _.mapValues(installedServices, loader.queue);
 
   // XXX
-  //console.log('### load.services out:', services);
-
-  //out;
-
-  // Load services
-  return services.reduce(buildMap, {});
-
-  // XXX
-  //console.log('*** Services:', services);
-  //
-  //return runner.run(services);
+  //console.log('*** services:', candidates);
+  //console.log('*** valid:', validServices);
+  //console.log('*** installed:', installedServices);
+  //console.log('QQQ serviceQueue:', serviceQueue);
+  //console.log('AAA serviceApis:', serviceApis);
 
 
-  // DEV
-  //var _services = include({
-  //  path: path,
-  //  depth: 1
-  //});
-  //
-  //return _.forEach(_services, function(service){
-  //  //service.init();
-  //});
+  // Return service apis
+  // TODO: possible mismatch k -> v
+  return _.zipObject(Object.keys(installedServices), serviceApis);
+  //return {};
 
 };

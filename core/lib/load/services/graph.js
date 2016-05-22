@@ -1,20 +1,78 @@
 
-var DepGraph = require('dependency-graph').DepGraph;
-var include  = require('../../include');
-var semver   = require('semver');
-var _        = require('lodash');
+var dispatcher = require('./dispatcher');
+var DepGraph   = require('dependency-graph').DepGraph;
+var include    = require('../../include');
+var semver     = require('semver');
+var _          = require('lodash');
 
-var depGraph = new DepGraph();
+var depGraph      = new DepGraph();
+//var srvCollection = {};
 
 
-// Primate functions
-var loader = module.exports = {
+
+var initSrvApi = function(service){
+
+  // DEV
+  var apiBase = {
+    fetch: function(){},
+    create: function(){},
+    update: function(){},
+    remove: function(){}
+  };
+
+  // Register service api
+  service.api = service.api || apiBase;
+
+  return _.extend({}, service.api, {
+    id:      service.id,
+    name:    service.manifest.name,
+    version: service.manifest.version
+  });
+};
+
+
+
+var walker = function(service){
+
+  //return {isApi: true, id: service.id};
+
+  // XXX
+  console.log('+++ run:', service);
+  //console.log(' ');
+
+  // TODO: verify whether run init (active)
+
+  // Run init
+  return dispatcher.run.generator({
+    ctx:  _.omit(service, ['init', 'activable', 'active']),
+    gen:  service.init,
+    args: {isInitS: true}
+  })
+    .then(initSrvApi.bind(service))
+    .tap(function(srvApi){
+
+      var logMsg = [
+        'Service',
+        srvApi.manifest.name,
+        'has been started.'
+      ].join(' ');
+
+
+      // Log service initialization
+      S.log('debug', logMsg);
+
+    });
+};
+
+
+
+var graph = module.exports = {
 
   validate: function(services, candidate, srvId){
 
     // XXX
-    console.log('--- valiate:', srvId, candidate);
-    console.log('--- services:', services);
+    //console.log('--- valiate:', srvId, candidate);
+    //console.log('--- services:', services);
 
     // Service must have a manifest file
     if( !('manifest' in candidate) )
@@ -35,6 +93,8 @@ var loader = module.exports = {
     // Add to dep graph
     depGraph.addNode(srvId);
 
+    // Assign id
+    candidate.id = srvId;
 
     // Add to services map
     //services.push(_.assign(candidate, {id: srvId}));
@@ -48,7 +108,7 @@ var loader = module.exports = {
   process: function(service, srvId, services){
 
     // XXX
-    console.log('>>> process:', srvId);
+    //console.log('### process:', srvId);
     //console.log('>>> process:', arguments);
 
     // Default status
@@ -109,6 +169,19 @@ var loader = module.exports = {
     queue[_index] = service;
 
     return queue;
+  },
+
+  _run: function(){
+
+    var rootId  = depGraph.overallOrder().shift();
+    //var rootSrv =
+
+  },
+
+  run: function(service){
+
+    return {isServiceApi: true, id: service.id};
+
   }
 
   //run: function(services){

@@ -24,7 +24,7 @@ var S = {
 
   runInCage: function(fn, ctx){
 
-    var _S = _.omit(this, [
+    var _S = _.omit(S, [
       'runInS',
       'runInCage',
       'load',
@@ -32,7 +32,7 @@ var S = {
       'config'
     ]);
 
-    return co(fn.bind(ctx, _S));
+    return co(fn.bind(ctx, _.extend({}, this, _S)));
   }
 };
 
