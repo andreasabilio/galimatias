@@ -72,11 +72,9 @@ var __walker = function(service){
 
 var graph = module.exports = {
 
-  validate: function(services, candidate, srvId){
+  services: {},
 
-    // XXX
-    //console.log('--- valiate:', srvId, candidate);
-    //console.log('--- services:', services);
+  validate: function(services, candidate, srvId){
 
     // Service must have a manifest file
     if( !('manifest' in candidate) )
@@ -101,7 +99,6 @@ var graph = module.exports = {
     candidate.id = srvId;
 
     // Add to services map
-    //services.push(_.assign(candidate, {id: srvId}));
     services[srvId] = candidate;
 
     // Return collection
@@ -109,86 +106,28 @@ var graph = module.exports = {
   },
 
 
-
-  _process: function(service, srvId, services){
-
-    // XXX
-    //console.log('### process:', srvId);
-    //console.log('>>> process:', arguments);
-
-    // Default status
-    var status = {
-      activable: true,  // All services are assumed activable
-      active: false     // All services are initially inactive
-    };
-
-    // Does service have any dependencies?
-    if( !('dependencies' in service.manifest) )
-      return _.assign(service, status);
-
-    // Process dependencies
-    status.activable = _.every(service.manifest.dependencies, function(version, depId){
-
-      // Get required service
-      var dependency = services[depId];
-      //var dependency = _.find(services, {id: depId});
-
-      // Is dep installed?
-      if( !dependency ) return false;
-
-      // Valid version combination?
-      return semver.satisfies(dependency.manifest.version, version);
-
-    }, this);
-
-    // Is service activable?
-    if( status.activable ){
-
-      // Have dependencies?
-      if(!_.isEmpty(service.manifest.dependencies))
-        return _.assign(service, status);
-
-      // Register dep graph nodes
-      Object.keys(service.manifest.dependencies)
-        .forEach(depGraph.addDependency.bind(depGraph, srvId));
-
-      //depGraph.addDependency(srvId, depId);
-    }else if(depGraph.hasNode(srvId)){
-      // Remove node and dependants
-      depGraph.dependantsOf(srvId).forEach(depGraph.removeNode);
-      depGraph.removeNode(srvId);
-    }
-
-    // Done
-    return _.assign(service, status);
-  },
-
   process: function(_graph, service, srvId, services){
 
     // XXX
     console.log('### process:', srvId);
-    //console.log('### process:', arguments);
+    //console.log('AAA process:', arguments);
 
-    // Default status
-    var status = {
+
+    // Register in graph store
+    graph.services[srvId] = service;
+
+    // Update service
+    service.status = {
       activable: true,  // All services are assumed activable
       active: false     // All services are initially inactive
     };
 
-    _graph.services        = _graph.services || {};
-    _graph.services[srvId] = _.assign(service, status);
-
-    var out = {
-      services: _graph.services,
-      run:      graph.run
-    };
-
     // Does service have any dependencies?
     if( !('dependencies' in service.manifest) )
-      return _.assign(service, status);
+      return graph;
 
     // Process dependencies
-    status.activable = _.every(service.manifest.dependencies, function(version, depId){
+    service.status.activable = _.every(service.manifest.dependencies, function(version, depId){
 
       // Get required service
       var dependency = services[depId];
@@ -202,62 +141,68 @@ var graph = module.exports = {
 
     }, this);
 
+    // XXX
+    //console.log('###', srvId, service.status.activable);
+
+
     // Is service activable?
-    if( status.activable ){
+    if( service.status.activable ){
+
+      // Register in graph store
+      graph.services[srvId] = service;
+
+      // Obtain dependencies ids
+      var deps = Object.keys(service.manifest.dependencies);
 
       // Have dependencies?
-      if(!_.isEmpty(service.manifest.dependencies))
-        return out;
+      if( _.isEmpty(deps) )
+        return graph;
+
 
       // Register dep graph nodes
-      Object.keys(service.manifest.dependencies)
-        .forEach(depGraph.addDependency.bind(depGraph, srvId));
+      deps.forEach(depGraph.addDependency.bind(depGraph, srvId));
 
-      //depGraph.addDependency(srvId, depId);
     }else if(depGraph.hasNode(srvId)){
+
       // Remove node and dependants
       depGraph.dependantsOf(srvId).forEach(depGraph.removeNode);
       depGraph.removeNode(srvId);
     }
 
     // Done
-    return out;
+    return graph;
 
     //return _.assign(service, status);
     //return {culo: true};
   },
 
 
-  // TODO: remove
-  queue: function(queue, service){
 
-    // Get init index of service init
-    var _index = depGraph.overallOrder().indexOf(service.id);
-
-    // Insert in queue
-    queue[_index] = service;
-
-    return queue;
-  },
-
-
-
-  run: function(){
+  init: function(){
 
     // init local api store
-    var api = {};
+    var api     = {};
+    var counter = 0;
+    var queue   = depGraph.overallOrder();
 
-    var services = this.services;
-    var rootId   = depGraph.overallOrder().shift();
-    var rootSrv  = this.services[rootId];
-    var ctx      = {isInitCtx: true};
-    var args     = {isInitArgs: true};
+    var services = graph.services;
+    var rootId   = queue[counter];
+    var rootSrv  = services[rootId];
+    var ctx      = {isInitCtx: true, shared: true};
+    var args     = {isInitArgs: true, shared: true};
+
+    // XXX
+    //console.log('___ services', graph.services);
+    console.log('___ rootId', queue);
 
     var walker = function(service){
+
+      console.log(' ');
 
       return co( rootSrv.init.bind(ctx, args) ).then(function(statusCode){
 
         // XXX
+        console.log(' ');
         console.log('___ service init done:', rootId, statusCode);
         return {isServiceApi: true, id: rootId};
 
@@ -270,8 +215,16 @@ var graph = module.exports = {
 
         // XXX
         //console.log('___ deps:', depGraph);
-        console.log('___ deps:', rootId, rootSrv);
+        console.log('___ srv:', rootId, rootSrv);
         console.log('___ deps:', rootId, dependencies);
+
+        //Promise.all().then(function(){
+        //  return api;
+        //});
+
+        //dependencies.forEach(function(childId){
+        //
+        //});
 
 
         // Register api
