@@ -105,7 +105,8 @@ var graph = module.exports = {
   },
 
 
-  process: function(service, srvId, services){
+
+  _process: function(service, srvId, services){
 
     // XXX
     //console.log('### process:', srvId);
@@ -158,6 +159,72 @@ var graph = module.exports = {
     return _.assign(service, status);
   },
 
+  process: function(_graph, service, srvId, services){
+
+    // XXX
+    console.log('### process:', srvId);
+    //console.log('### process:', arguments);
+
+    // Default status
+    var status = {
+      activable: true,  // All services are assumed activable
+      active: false     // All services are initially inactive
+    };
+
+    _graph.services        = _graph.services || {};
+    _graph.services[srvId] = _.assign(service, status);
+
+    var out = {
+      services: _graph.services,
+      run:      graph.run
+    };
+
+    // Does service have any dependencies?
+    if( !('dependencies' in service.manifest) )
+      return _.assign(service, status);
+
+    // Process dependencies
+    status.activable = _.every(service.manifest.dependencies, function(version, depId){
+
+      // Get required service
+      var dependency = services[depId];
+      //var dependency = _.find(services, {id: depId});
+
+      // Is dep installed?
+      if( !dependency ) return false;
+
+      // Valid version combination?
+      return semver.satisfies(dependency.manifest.version, version);
+
+    }, this);
+
+    // Is service activable?
+    if( status.activable ){
+
+      // Have dependencies?
+      if(!_.isEmpty(service.manifest.dependencies))
+        return out;
+
+      // Register dep graph nodes
+      Object.keys(service.manifest.dependencies)
+        .forEach(depGraph.addDependency.bind(depGraph, srvId));
+
+      //depGraph.addDependency(srvId, depId);
+    }else if(depGraph.hasNode(srvId)){
+      // Remove node and dependants
+      depGraph.dependantsOf(srvId).forEach(depGraph.removeNode);
+      depGraph.removeNode(srvId);
+    }
+
+    // Done
+    return out;
+
+    //return _.assign(service, status);
+    //return {culo: true};
+  },
+
+
+
   queue: function(queue, service){
 
 
@@ -171,39 +238,19 @@ var graph = module.exports = {
     return queue;
   },
 
-  _run: function(){
+
+
+  run: function(){
 
     var rootId  = depGraph.overallOrder().shift();
-    //var rootSrv =
+    var rootSrv = this.services[rootId];
 
-  },
+    // XXX
+    console.log('___ run:', this);
+    console.log('___ run:', rootSrv);
+    console.log('___ run:', rootId);
 
-  run: function(service){
-
-    return {isServiceApi: true, id: service.id};
+    return {isServiceApi: true, id: rootSrv.id};
 
   }
-
-  //run: function(services){
-  //
-  //  // Register all services in core registry
-  //  s.reg('srv', services);
-  //
-  //  // Return promise
-  //  return new Promise(function(resolve, reject){
-  //
-  //    // Say hello!
-  //    console.log(' ');
-  //    s.core.log('info', 'Starting SmallCloud services...');
-  //
-  //    // Run!
-  //    s.runner.call({
-  //      services: services,
-  //      resolve: resolve,
-  //      reject: reject
-  //    });
-  //
-  //  });
-  //
-  //}
 };

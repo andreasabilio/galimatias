@@ -1,5 +1,5 @@
 
-var dispatcher = require('./dispatcher');
+//var dispatcher = require('./dispatcher');
 var include    = require('../../include');
 var loader     = require('./loader');
 var graph      = require('./graph');
@@ -62,9 +62,15 @@ module.exports = function*(path, doFork){
   // Setup
   var candidates        = include({path: path, depth: 1});
   var validServices     = _.reduce(candidates, graph.validate, {});
-  var installedServices = _.mapValues(validServices, graph.process);
-  var serviceQueue      = _.reduce(installedServices, graph.queue, []);
-  var serviceApis       = _.map(serviceQueue, graph.run);
+
+  var serviceGraph  = _.reduce(validServices, graph.process, {});
+
+  var serviceApis =  serviceGraph.run();
+
+
+  //var installedServices = _.mapValues(validServices, graph.process);
+  //var serviceQueue      = _.reduce(installedServices, graph.queue, []);
+  //var serviceApis       = _.map(serviceQueue, graph.run);
 
   //// Setup
   //var candidates        = include({path: path, depth: 1});
@@ -77,12 +83,13 @@ module.exports = function*(path, doFork){
   //console.log('*** valid:', validServices);
   //console.log('*** installed:', installedServices);
   //console.log('QQQ serviceQueue:', serviceQueue);
-  //console.log('AAA serviceApis:', serviceApis);
+  console.log('AAA serviceApis:', serviceApis);
+  console.log('GGG serviceGraph:', serviceGraph);
 
 
   // Return service apis
   // TODO: possible mismatch k -> v
-  return _.zipObject(Object.keys(installedServices), serviceApis);
-  //return {};
+  //return _.zipObject(Object.keys(installedServices), serviceApis);
+  return {};
 
 };
