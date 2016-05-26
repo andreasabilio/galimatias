@@ -6,6 +6,7 @@ var include    = require('../../include');
 var semver     = require('semver');
 var co         = require('co');
 var _          = require('lodash');
+var S          = require('../../../s');
 
 var depGraph      = new DepGraph();
 //var srvCollection = {};
@@ -67,6 +68,23 @@ var __walker = function(service){
 };
 
 
+var Node = {
+
+  _visitors:    [],
+  dependencies: null,
+  id:           null,
+
+  visit: function(visitId){
+
+    // Acknowledge visit?
+    if(visitId)
+      this._visitors.push(visitId);
+
+    // Some visit has to be the last...
+    if( _.isEqual(this._visitors, this.dependencies) )
+      this.service.init();
+  }
+};
 
 
 
@@ -188,18 +206,37 @@ var graph = module.exports = {
     var services = graph.services;
     var rootId   = queue[counter];
     var rootSrv  = services[rootId];
-    var ctx      = {isInitCtx: true, shared: true};
-    var args     = {isInitArgs: true, shared: true};
+    //var ctx      = {isInitCtx: true, shared: true};
+    //var args     = {isInitArgs: true, shared: true};
 
     // XXX
     //console.log('___ services', graph.services);
     console.log('___ rootId', queue);
 
-    var walker = function(service){
+    var visitor = function(out, service){
+
+
+    };
+
+    var out = _.reduce(queue, visitor, {});
+
+    var walker = function(service, args){
+
+
+      var ctx  = {isInitCtx: true, shared: true};
+          args = args || {};
 
       console.log(' ');
 
-      return co( rootSrv.init.bind(ctx, args) ).then(function(statusCode){
+      //return co( rootSrv.init.bind(ctx, args) ).then(function(statusCode){
+      return co(function*(){
+
+        // DEV
+        //var _args = yield Promise.all(args);
+
+        return rootSrv.init.call(ctx, args);
+
+      }).then(function(statusCode){
 
         // XXX
         console.log(' ');
@@ -218,10 +255,10 @@ var graph = module.exports = {
         console.log('___ srv:', rootId, rootSrv);
         console.log('___ deps:', rootId, dependencies);
 
+        // DEV
         //Promise.all().then(function(){
         //  return api;
         //});
-
         //dependencies.forEach(function(childId){
         //
         //});
@@ -241,6 +278,6 @@ var graph = module.exports = {
 
     //return this.api;
 
-    return walker(services[rootId]);
+    return walker(services[rootId], S);
   }
 };

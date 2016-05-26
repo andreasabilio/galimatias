@@ -60,13 +60,14 @@ var _          = require('lodash');
 module.exports = function*(path, doFork){
 
   // Setup
-  var candidates        = include({path: path, depth: 1});
-  var validServices     = _.reduce(candidates, graph.validate, {});
+  var candidates    = include({path: path, depth: 1});
+  var validServices = _.reduce(candidates, graph.validate, {});
   //
   var serviceGraph  = _.reduce(validServices, graph.process, {});
 
   var serviceApis = yield serviceGraph.init().catch(function(e){
     console.log('ERROR in services.index:', e);
+    console.log(e.stack);
   });
 
 
