@@ -1,6 +1,7 @@
 {
-  "name": "Small Network",
+  "name": "core networking",
   "version": "0.1.0",
   "dependencies": {
+    "http": "0.1.0"
   }
 }

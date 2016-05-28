@@ -1,5 +1,5 @@
 {
-  "name": "Small Resources",
+  "name": "core resources",
   "version": "0.1.0",
   "dependencies": {
     "db": "0.1.0"

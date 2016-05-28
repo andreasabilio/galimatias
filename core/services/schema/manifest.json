@@ -1,7 +1,8 @@
 {
-  "name": "core http",
+  "name": "core schema",
   "version": "0.1.0",
   "dependencies": {
+    "db": "0.1.0",
     "resource": "0.1.0"
   }
 }

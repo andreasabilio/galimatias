@@ -1,5 +1,5 @@
 {
-  "name": "Small Database Driver",
+  "name": "core database",
   "version": "0.1.0",
   "dependencies": {}
 }

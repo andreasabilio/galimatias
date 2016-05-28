@@ -27,6 +27,11 @@ module.exports = function*(S){
   var resRouter = new Router();
   http.use(S.resource.getApi(resRouter).routes());
 
+  // DEV
+  http.use(function*(){
+    this.body = 'Hello from SmallCloud HTTP service catchall!';
+  });
+
   return http;
 
 };

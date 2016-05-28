@@ -9,14 +9,6 @@ var core       = require('./core');
 
 core.init(config).then(function(S){
 
-  // DEV
-  S.http.use(function*(){
-    this.body = 'Hello from SmallCloud HTTP service catchall!';
-  });
-
-  // Start the http server
-  S.http.listen(4242);
-
   console.log(' ');
 
   S.log('info', 'SmallCLoud has started on localhost:4242');

@@ -70,8 +70,5 @@ module.exports = function*(path, doFork){
 
 
   // Return service apis
-  // TODO: possible mismatch k -> v
-  //return _.zipObject(Object.keys(installedServices), serviceApis);
-  //return {};
   return serviceApis;
 };
