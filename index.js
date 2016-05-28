@@ -15,5 +15,6 @@ core.init(config).then(function(S){
   S.log('info', 'SmallCLoud has started');
   console.log(' ');
 }).catch(function(e){
-  console.log('ERROR:', e.trace);
+  console.log('ERROR in index:', e);
+  console.log(e.stack);
 });

@@ -76,10 +76,6 @@ var nodeBase = {
 
   visit: function(visitId, service){
 
-    // XXX
-    console.log('  ');
-    //console.log('---', visitId, 'is visiting', this.id);
-
     // Promise singleton
     if(!this._promise)
       this._promise = Promise.resolve({isRootNode: true}); // TODO: feed undefined
@@ -91,35 +87,26 @@ var nodeBase = {
 
     // Acknowledge visit?
     if(visitId && !(-1 === this.dependencies.indexOf(visitId))){
-
-      // XXX
-      //console.log('---', this.id, 'acknowledges a visit from', visitId);
-
       this._visitors[visitId] = service;
     }
-
-
-    // XXX
-    //console.log('---', !(-1 === this.dependencies.indexOf(visitId)));
-    //console.log('---', this.id, 'status:', Object.keys(this._visitors), this.dependencies);
 
 
     // Some visit has to be the last...
     if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
 
       // Build base S arg
-      var s = {log: function(){
-        console.log('sss This is a log from a service init');
-      }};
+      //var s = {log: S.log};
+      //console.log('>>> S', S);
+      // TODO: Fix S undefined
 
       // Complete arg
-      var S = _.assign({}, this._visitors, s);
+      var s = _.assign({}, this._visitors, {log: S.log});
 
       // XXX
       //console.log('--------- Running init on', this.id);
 
       // Run the service init generator
-      var srvApi = co.wrap(this.service.init).call(this.service, S);
+      var srvApi = co.wrap(this.service.init).call(this.service, s);
 
       // Resolve promise with promise
       this._promise.then(function(){
@@ -127,9 +114,6 @@ var nodeBase = {
       });
 
     }
-
-    // XXX
-    //console.log('PROMISE', this._promise);
 
     // Always return a promise
     return this._promise;
@@ -150,11 +134,8 @@ var graph = module.exports = {
       // Get node
       var node = graph.nodes[nodeId];
 
-      // XXX
-      //console.log('DING', node);
-
       // Visit the node
-      apis[nodeId] = node.visit().then(function(srvApi){
+      apis[nodeId] = node.visit().finally(function(srvApi){
 
         var children = depGraph.dependantsOf(nodeId);
 
@@ -176,8 +157,17 @@ var graph = module.exports = {
     // XXX
     //console.log('III serviceApis', serviceApis);
 
+    //var out = Promise.all(serviceApis);
+
+    //console.log('III', out);
+
+    return serviceApis;
+
+
+
     // DEV
-    return {isServiceApi: true};
+    //return {isServiceApi: true};
+    //return out;
   },
 
   // Internal node map
