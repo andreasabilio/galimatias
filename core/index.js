@@ -31,14 +31,15 @@ var core = module.exports = {
     // Load and init core services
     var services = yield S.load.services.call(S, S.config.paths.core.services, false);
 
+    // Register core services
     Object.assign(S, services);
 
 
     // XXX
-    //console.log(' ');
-    //console.log('----------------------------------------------');
-    //console.log(' ');
-    ////console.log('S:', S);
+    console.log(' ');
+    console.log('----------------------------------------------');
+    console.log(' ');
+    console.log('S:', S);
     //console.log('Services:', S.services);
 
     // DEV

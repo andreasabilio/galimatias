@@ -1,0 +1,8 @@
+{
+  "name": "Small HTTP Server",
+  "version": "0.1.0",
+  "dependencies": {
+    "network": "0.1.0",
+    "api": "0.1.0"
+  }
+}
