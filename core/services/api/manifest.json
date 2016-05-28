@@ -2,6 +2,6 @@
   "name": "Small API",
   "version": "0.1.0",
   "dependencies": {
-    "resources": "0.1.0"
+    "db": "0.1.0"
   }
 }
