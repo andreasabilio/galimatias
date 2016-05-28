@@ -122,8 +122,14 @@ var nodeBase = {
     // XXX
     //console.log('---', this.id, 'status:', Object.keys(this._visitors), this.dependencies);
 
+    var xor = _.xor(Object.keys(this._visitors), this.dependencies);
+
+    // XXX
+    //console.log('OOO', this.id, xor);
+
     // Some visit has to be the last...
-    if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
+    //if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
+    if( !xor.length ){
 
       // Complete arg
       var s = _.assign({}, this._visitors, {log: S.log});
