@@ -10,11 +10,6 @@ module.exports = function*(S){
   // Log
   S.log('info', 'Starting ' + this.manifest.name + ' service...');
 
-  // XXX
-  //console.log('   - databases', S.db.map(function(db){
-  //  return db.name;
-  //}));
-
   return {
     isServiceApi: true,
     name: this.manifest.name
