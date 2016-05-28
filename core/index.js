@@ -1,40 +1,44 @@
 
-var config = require('./config');
-var loader = require('./lib/load/services');
-var co     = require('co');
-var _      = require('lodash');
-var S      = require('smallcloud');
+var config  = require('./config');
+var include = require('./lib/include');
+var path    = require('path');
+var co      = require('co');
+var _       = require('lodash');
 
-// Load libraries into S
-//_.extend(S, lib);
+
+// Setup
+var hasRun = false;
+var lib    = include(path.resolve(__dirname, './lib'));
+var S      = _.assign({}, lib);
 
 var core = module.exports = {
   init: co.wrap(function*(_config){
 
-    // XXX
-    //console.log('>>> Running init');
+    // Run only once
+    if(hasRun)
+      throw new Error('ERROR: Init can only be run once');
+    else
+      hasRun = true;
 
+    // Salute
     console.log('  ');
-    //console.log('S:', S);
     S.log('info', 'SmallCloud is starting...');
+    console.log('  ');
 
     // Parse and load config into S
     _.extend(S, _config, config);
 
-    S.load = {
-      services: loader
-    };
-
-    S.services.core = yield loader(S.config.paths.core.services, false);
 
 
+    // Load and initialize core services
+    S.services.core = yield S.runInS(S.load.services, S.config.paths.core.services, false);
 
     // XXX
     console.log(' ');
     console.log('----------------------------------------------');
     console.log(' ');
-    //console.log('S:', S);
-    console.log('Core Services:', S.services.core);
+    console.log('S:', S);
+    //console.log('Services:', S.services);
 
     // DEV
     return S;

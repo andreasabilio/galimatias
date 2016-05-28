@@ -65,7 +65,7 @@ module.exports = function*(path, doFork){
 
   //
   var serviceGraph = _.reduce(validServices, graph.process, {});
-  var serviceApis  = yield serviceGraph.init();
+  var serviceApis  = yield serviceGraph.init.call(this);
 
 
 

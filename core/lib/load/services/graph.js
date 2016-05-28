@@ -1,117 +1,39 @@
 
-var dispatcher = require('./dispatcher');
 var Promise    = require('bluebird');
 var DepGraph   = require('dependency-graph').DepGraph;
-var include    = require('../../include');
 var semver     = require('semver');
 var co         = require('co');
 var _          = require('lodash');
-var S          = require('../../../s');
 
 var depGraph      = new DepGraph();
-//var srvCollection = {};
-
-
-
-
-var initSrvApi = function(service){
-
-  // DEV
-  var apiBase = {
-    fetch: function(){},
-    create: function(){},
-    update: function(){},
-    remove: function(){}
-  };
-
-  // Register service api
-  service.api = service.api || apiBase;
-
-  return _.extend({}, service.api, {
-    id:      service.id,
-    name:    service.manifest.name,
-    version: service.manifest.version
-  });
-};
-
-
-
-var __walker = function(service){
-
-  //return {isApi: true, id: service.id};
-
-  // XXX
-  console.log('+++ run:', service);
-  //console.log(' ');
-
-  // TODO: verify whether run init (active)
-
-  // Run init
-  return dispatcher.run.generator({
-    ctx:  _.omit(service, ['init', 'activable', 'active']),
-    gen:  service.init,
-    args: {isInitS: true}
-  })
-    .then(initSrvApi.bind(service))
-    .tap(function(srvApi){
-
-      var logMsg = [
-        'Service',
-        srvApi.manifest.name,
-        'has been started.'
-      ].join(' ');
-
-
-      // Log service initialization
-      S.log('debug', logMsg);
-
-    });
-};
 
 
 var nodeBase = {
 
-  //_visitors: null,
-  //_promise:  null,
-
-  //_resolver: ,
-
-  visit: function(visitId, service){
-
-    // XXX
-    var that = this;
-    //if('undefined' !== typeof visitId){
-    //  console.log(' ');
-    //  console.log('---', visitId, 'is visiting', this.id, 'with', service);
-    //}
+  visit: function(S, visitId, service){
 
     // Init visitor reg?
     if(!this._visitors)
       this._visitors = {};
 
 
-    // Promise resolve fn carrier
-    //var boundResolver;
+    // Promise resolve fn wrapper
     var resolverFn = function(srvApi){
-      //console.log('+++ Resolving', this.id, 'with', srvApi);
       this.resolve(srvApi);
+      return srvApi;
     };
 
     // Promise singleton
-    if(!this._promise)
-      this._promise = new Promise(function(resolve, reject){
+    if(!this._promise){
 
-        // XXX
-        //console.log('  - first visit to', that.id, 'is from', visitId);
-
-        //var _resolve = function(result){
-        //  console.log('XXX', result);
-        //  resolve(result);
-        //};
-
+      var handler = function(resolve, reject){
         // Bind resolver
-        that._resolver = resolverFn.bind({resolve: resolve, reject: reject, id: that.id}); // XXX
-      });
+        this._resolver = resolverFn.bind({resolve: resolve, reject: reject});
+      };
+
+      // Store promise for return
+      this._promise = new Promise(handler.bind(this));
+    }
 
 
     // Acknowledge visit?
@@ -119,36 +41,18 @@ var nodeBase = {
       this._visitors[visitId] = service;
     }
 
-    // XXX
-    //console.log('---', this.id, 'status:', Object.keys(this._visitors), this.dependencies);
-
-    var xor = _.xor(Object.keys(this._visitors), this.dependencies);
-
-    // XXX
-    //console.log('OOO', this.id, xor);
+    // Get missing deps
+    var missing = _.xor(Object.keys(this._visitors), this.dependencies);
 
     // Some visit has to be the last...
-    //if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
-    if( !xor.length ){
+    if( !missing.length ){
 
       // Complete arg
       var s = _.assign({}, this._visitors, {log: S.log});
 
-      // XXX
-      //console.log('DING', that._resolver);
-
       var srvInit = co.wrap(this.service.init).bind(this.service, s);
 
-      srvInit().then(function(srvApi){
-        // XXX
-        //console.log(' ');
-        //console.log('>>>', that.id, 'initialized with', srvApi);
-
-        that._resolver(srvApi);
-
-        return srvApi;
-
-      }).catch(function(e){
+      srvInit().then(this._resolver).catch(function(e){
         console.log('ERROR in graph srv init:', e);
         console.log(e.stack);
       });
@@ -162,59 +66,6 @@ var nodeBase = {
 
 
 var graph = module.exports = {
-
-  // DEV
-  init: function(){
-
-    var queue = depGraph.overallOrder();
-
-    //var serviceApis = _.reduce(queue, function(apis, nodeId){
-    return _.reduce(queue, function(apis, nodeId){
-
-      // Get node
-      var node = graph.nodes[nodeId];
-
-      // Visit the node
-      apis[nodeId] = node.visit().then(function(srvApi){
-
-        // XXX
-        //console.log('+++ Finally visit children of', nodeId, srvApi);
-
-        var children = depGraph.dependantsOf(nodeId);
-
-        children.forEach(function(childId, position, _children){
-
-          var child = graph.nodes[childId];
-
-          // XXX
-          //console.log('---', nodeId, 'is to visit', childId, 'with', srvApi);
-
-          apis[childId] = child.visit(nodeId, srvApi);
-
-        });
-
-        return srvApi;
-      });
-
-      return apis;
-
-    }, {});
-
-    //// XXX
-    ////console.log('III serviceApis', serviceApis);
-    //
-    ////var out = Promise.all(serviceApis);
-    //
-    ////console.log('III', out);
-    //
-    //return serviceApis;
-    //
-    //
-    //
-    //// DEV
-    ////return {isServiceApi: true};
-    ////return out;
-  },
 
   // Internal node map
   nodes: {},
@@ -241,7 +92,6 @@ var graph = module.exports = {
     depGraph.addNode(srvId);
 
     // Add to services map
-    //nodes[srvId] = candidate;
     nodes[srvId] = _.assign({}, nodeBase, {
       id: srvId,
       service: candidate,
@@ -254,10 +104,6 @@ var graph = module.exports = {
 
 
   process: function(_graph, node, srvId, nodes){
-
-    // XXX
-    //console.log('### process:', srvId);
-    //console.log('AAA process:', arguments);
 
 
     // Register in graph store
@@ -287,9 +133,6 @@ var graph = module.exports = {
 
     });
 
-    // XXX
-    //console.log('###', srvId, node.status.activable);
-
 
     // Is service activable?
     if( node.status.activable ){
@@ -317,106 +160,40 @@ var graph = module.exports = {
 
     // Done
     return graph;
-
-    //return _.assign(service, status);
-    //return {culo: true};
   },
 
 
+  init: function(){
 
-  _init: function(){
+    // Pointer
+    var S = this;
 
-    // init local api store
-    var api     = {};
-    var counter = 0;
-    var queue   = depGraph.overallOrder();
+    var queue = depGraph.overallOrder();
 
-    var services = graph.services;
-    var rootId   = queue[counter];
-    var rootSrv  = services[rootId];
-    //var ctx      = {isInitCtx: true, shared: true};
-    //var args     = {isInitArgs: true, shared: true};
-
-    // XXX
-    //console.log('___ services', graph.services);
-    console.log('___ rootId', queue);
-
-    var visitor = function(api, nodeId){
+    //var serviceApis = _.reduce(queue, function(apis, nodeId){
+    return _.reduce(queue, function(apis, nodeId){
 
       // Get node
-      var node     = graph.nodes[nodeId];
-      var children = depGraph.dependantsOf(nodeId) || [];
+      var node = graph.nodes[nodeId];
 
       // Visit the node
-      api[nodeId] = node.visit.call(api).then(function(srvApi){
-        return children.forEach(children, function(childId){
+      apis[nodeId] = node.visit(S).then(function(srvApi){
+
+        var children = depGraph.dependantsOf(nodeId);
+
+        children.forEach(function(childId, position, _children){
+
+          var child = graph.nodes[childId];
+
+          apis[childId] = child.visit(S, nodeId, srvApi);
 
         });
+
+        return srvApi;
       });
 
-      return api.push();
-    };
+      return apis;
 
-    var out = _.reduce(queue, visitor, {});
-
-    var walker = function(service, args){
-
-
-      var ctx  = {isInitCtx: true, shared: true};
-          args = args || {};
-
-      console.log(' ');
-
-      //return co( rootSrv.init.bind(ctx, args) ).then(function(statusCode){
-      return co(function*(){
-
-        // DEV
-        //var _args = yield Promise.all(args);
-
-        return rootSrv.init.call(ctx, args);
-
-      }).then(function(statusCode){
-
-        // XXX
-        console.log(' ');
-        console.log('___ service init done:', rootId, statusCode);
-        return {isServiceApi: true, id: rootId};
-
-      }).then(function(srvApi){
-
-        // XXX
-        console.log('___ api:', rootId, srvApi);
-
-        var dependencies = depGraph.dependantsOf(rootId);
-
-        // XXX
-        //console.log('___ deps:', depGraph);
-        console.log('___ srv:', rootId, rootSrv);
-        console.log('___ deps:', rootId, dependencies);
-
-        // DEV
-        //Promise.all().then(function(){
-        //  return api;
-        //});
-        //dependencies.forEach(function(childId){
-        //
-        //});
-
-
-        // Register api
-        api[rootId] = srvApi;
-
-        return api;
-      });
-    };
-
-    // XXX
-    //console.log('___ run:', this);
-    //console.log('___ run:', rootSrv);
-    //console.log('___ run:', rootId);
-
-    //return this.api;
-
-    return walker(services[rootId], S);
+    }, {});
   }
 };
