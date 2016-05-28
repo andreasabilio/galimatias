@@ -4,17 +4,12 @@ var include = require('./lib/include');
 var path    = require('path');
 var co      = require('co');
 var _       = require('lodash');
-//var S      = require('./s');
-//
-//Load libraries into S
-//_.extend(S, lib);
 
 
-// Load libraries
-var lib    = include(path.resolve(__dirname, './lib'));
+// Setup
 var hasRun = false;
-
-var S = _.assign({}, lib);
+var lib    = include(path.resolve(__dirname, './lib'));
+var S      = _.assign({}, lib);
 
 var core = module.exports = {
   init: co.wrap(function*(_config){
