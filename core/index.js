@@ -35,11 +35,11 @@ var core = module.exports = {
     Object.assign(S, services);
 
 
-    // XXX
-    console.log(' ');
-    console.log('----------------------------------------------');
-    console.log(' ');
-    console.log('S:', S);
+    //XXX
+    //console.log(' ');
+    //console.log('----------------------------------------------');
+    //console.log(' ');
+    //console.log('S:', S);
     //console.log('Services:', S.services);
 
     // DEV
