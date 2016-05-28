@@ -1,8 +1,9 @@
 
 var config = require('./config');
+var loader = require('./lib/load/services');
 var co     = require('co');
 var _      = require('lodash');
-var S      = require('./s');
+var S      = require('smallcloud');
 
 // Load libraries into S
 //_.extend(S, lib);
@@ -14,15 +15,17 @@ var core = module.exports = {
     //console.log('>>> Running init');
 
     console.log('  ');
+    //console.log('S:', S);
     S.log('info', 'SmallCloud is starting...');
 
     // Parse and load config into S
     _.extend(S, _config, config);
 
+    S.load = {
+      services: loader
+    };
 
-
-    // Load and initialize core services
-    S.services.core = yield S.runInS(S.load.services, S.config.paths.core.services, false);
+    S.services.core = yield loader(S.config.paths.core.services, false);
 
 
 
