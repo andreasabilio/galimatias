@@ -6,7 +6,7 @@ var include    = require('../../include');
 var semver     = require('semver');
 var co         = require('co');
 var _          = require('lodash');
-var S          = require('../../../s');
+//var S          = require('../../../s');
 
 var depGraph      = new DepGraph();
 //var srvCollection = {};
@@ -76,7 +76,7 @@ var nodeBase = {
 
   //_resolver: ,
 
-  visit: function(visitId, service){
+  visit: function(S, visitId, service){
 
     // XXX
     var that = this;
@@ -110,7 +110,7 @@ var nodeBase = {
         //};
 
         // Bind resolver
-        that._resolver = resolverFn.bind({resolve: resolve, reject: reject, id: that.id}); // XXX
+        that._resolver = resolverFn.bind({resolve: resolve, reject: reject});
       });
 
 
@@ -166,6 +166,12 @@ var graph = module.exports = {
   // DEV
   init: function(){
 
+    // XXX
+    //console.log('>>> Graph init', this);
+
+    // Pointer
+    var S = this;
+
     var queue = depGraph.overallOrder();
 
     //var serviceApis = _.reduce(queue, function(apis, nodeId){
@@ -175,7 +181,7 @@ var graph = module.exports = {
       var node = graph.nodes[nodeId];
 
       // Visit the node
-      apis[nodeId] = node.visit().then(function(srvApi){
+      apis[nodeId] = node.visit(S).then(function(srvApi){
 
         // XXX
         //console.log('+++ Finally visit children of', nodeId, srvApi);
@@ -189,7 +195,7 @@ var graph = module.exports = {
           // XXX
           //console.log('---', nodeId, 'is to visit', childId, 'with', srvApi);
 
-          apis[childId] = child.visit(nodeId, srvApi);
+          apis[childId] = child.visit(S, nodeId, srvApi);
 
         });
 

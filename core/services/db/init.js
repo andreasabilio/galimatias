@@ -3,11 +3,14 @@ var OrientDB = require('orientjs');
 
 module.exports = function(S){
 
-  // XXX
-  console.log(' ');
-  console.log('    Running Database service init');
-  //console.log('    deps', Object.keys(this.manifest.dependencies));
-  console.log('    S', S);
+  //// XXX
+  //console.log(' ');
+  //console.log(' - Running Database service init');
+  ////console.log('    deps', Object.keys(this.manifest.dependencies));
+  ////console.log(' - S', S);
+
+  // Log
+  S.log('info', 'Starting ' + this.manifest.name + ' service...');
 
   //var server = OrientDB({
   //  host: 'localhost',
