@@ -23,7 +23,7 @@ module.exports = function*(S){
   var root = path.resolve(__dirname, '../../../static');
   http.use(Static(root));
 
-  // Register resource api
+  // Register resource and schema apis
   var resRouter = new Router();
   http.use(S.resource.getApi(resRouter).routes());
 

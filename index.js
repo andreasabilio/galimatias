@@ -19,7 +19,7 @@ core.init(config).then(function(S){
 
   console.log(' ');
 
-  S.log('info', 'SmallCLoud has started');
+  S.log('info', 'SmallCLoud has started on localhost:4242');
 
   console.log(' ');
 
