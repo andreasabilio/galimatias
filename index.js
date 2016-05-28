@@ -10,9 +10,15 @@ var core       = require('./core');
 
 core.init(config).then(function(S){
 
+  // DEV
+  S.http.use(function*(){
+    this.body = 'Hello from SmallCloud HTTP service!';
+  });
+
+  // Start the http server
+  S.http.listen(4242);
+
   console.log(' ');
-  //console.log('______________________________________________');
-  //console.log(' ');
 
   S.log('info', 'SmallCLoud has started');
 

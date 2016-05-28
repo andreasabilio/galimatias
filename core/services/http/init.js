@@ -1,5 +1,7 @@
 
-module.exports = function(S){
+var koa = require('koa');
+
+module.exports = function*(S){
 
   //// XXX
   //console.log(' ');
@@ -10,9 +12,10 @@ module.exports = function(S){
   // Log
   S.log('info', 'Starting ' + this.manifest.name + ' service...');
 
-  return {
-    isServiceApi: true,
-    name: this.manifest.name
-  };
+
+  // Initialize http server
+  var http = koa();
+
+  return http;
 
 };
