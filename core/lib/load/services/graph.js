@@ -1,72 +1,11 @@
 
-var dispatcher = require('./dispatcher');
 var Promise    = require('bluebird');
 var DepGraph   = require('dependency-graph').DepGraph;
-var include    = require('../../include');
 var semver     = require('semver');
 var co         = require('co');
 var _          = require('lodash');
-//var S          = require('../../../s');
 
 var depGraph      = new DepGraph();
-////var srvCollection = {};
-//
-//
-//
-//
-//var initSrvApi = function(service){
-//
-//  // DEV
-//  var apiBase = {
-//    fetch: function(){},
-//    create: function(){},
-//    update: function(){},
-//    remove: function(){}
-//  };
-//
-//  // Register service api
-//  service.api = service.api || apiBase;
-//
-//  return _.extend({}, service.api, {
-//    id:      service.id,
-//    name:    service.manifest.name,
-//    version: service.manifest.version
-//  });
-//};
-//
-//
-//
-//var __walker = function(service){
-//
-//  //return {isApi: true, id: service.id};
-//
-//  // XXX
-//  console.log('+++ run:', service);
-//  //console.log(' ');
-//
-//  // TODO: verify whether run init (active)
-//
-//  // Run init
-//  return dispatcher.run.generator({
-//    ctx:  _.omit(service, ['init', 'activable', 'active']),
-//    gen:  service.init,
-//    args: {isInitS: true}
-//  })
-//    .then(initSrvApi.bind(service))
-//    .tap(function(srvApi){
-//
-//      var logMsg = [
-//        'Service',
-//        srvApi.manifest.name,
-//        'has been started.'
-//      ].join(' ');
-//
-//
-//      // Log service initialization
-//      S.log('debug', logMsg);
-//
-//    });
-//};
 
 
 var nodeBase = {

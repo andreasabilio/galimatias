@@ -2,6 +2,7 @@
   "name": "Small Store",
   "version": "0.1.0",
   "dependencies": {
-    "network": "0.1.0"
+    "network": "0.1.0",
+    "db": "0.1.0"
   }
 }

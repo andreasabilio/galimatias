@@ -23,21 +23,23 @@ var core = module.exports = {
     // Salute
     console.log('  ');
     S.log('info', 'SmallCloud is starting...');
+    console.log('  ');
 
     // Parse and load config into S
     _.extend(S, _config, config);
 
     // Load and init core services
-    S.services = yield S.load.services.call(S, S.config.paths.core.services, false);
+    var services = yield S.load.services.call(S, S.config.paths.core.services, false);
 
+    Object.assign(S, services);
 
 
     // XXX
-    console.log(' ');
-    console.log('----------------------------------------------');
-    console.log(' ');
-    //console.log('S:', S);
-    console.log('Services:', S.services);
+    //console.log(' ');
+    //console.log('----------------------------------------------');
+    //console.log(' ');
+    ////console.log('S:', S);
+    //console.log('Services:', S.services);
 
     // DEV
     return S;

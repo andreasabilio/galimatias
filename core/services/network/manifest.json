@@ -1,5 +1,7 @@
 {
   "name": "Small Network",
   "version": "0.1.0",
-  "dependencies": {}
+  "dependencies": {
+    "db": "0.1.0"
+  }
 }
