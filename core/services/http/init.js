@@ -1,7 +1,8 @@
 
-var koa       = require('koa');
-var path      = require('path');
-var koaStatic = require('koa-static');
+var koa    = require('koa');
+var path   = require('path');
+var Static = require('koa-static');
+var Router = require('koa-router');
 
 module.exports = function*(S){
 
@@ -20,7 +21,11 @@ module.exports = function*(S){
 
   // Static file serving
   var root = path.resolve(__dirname, '../../../static');
-  http.use(koaStatic(root));
+  http.use(Static(root));
+
+  // Register resource api
+  var apiRouter = new Router({ prefix: '/resource'});
+  http.use(S.resource.getApi(apiRouter).routes());
 
   return http;
 

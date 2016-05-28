@@ -12,7 +12,16 @@ module.exports = function(S){
 
   return {
     isServiceApi: true,
-    name: this.manifest.name
+    name: this.manifest.name,
+    getApi: function(router){
+
+      router.get('/cosa', function*(next){
+        this.body = 'El termino cosa es el 42 de smallcloud'
+      });
+
+      return router;
+
+    }
   };
 
 };
