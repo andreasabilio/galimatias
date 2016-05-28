@@ -11,7 +11,7 @@ core.init(config).then(function(S){
 
   // DEV
   S.http.use(function*(){
-    this.body = 'Hello from SmallCloud HTTP service!';
+    this.body = 'Hello from SmallCloud HTTP service catchall!';
   });
 
   // Start the http server

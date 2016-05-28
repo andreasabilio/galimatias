@@ -24,8 +24,8 @@ module.exports = function*(S){
   http.use(Static(root));
 
   // Register resource api
-  var apiRouter = new Router({ prefix: '/resource'});
-  http.use(S.resource.getApi(apiRouter).routes());
+  var resRouter = new Router();
+  http.use(S.resource.getApi(resRouter).routes());
 
   return http;
 

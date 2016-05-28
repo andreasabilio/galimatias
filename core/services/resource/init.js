@@ -15,8 +15,24 @@ module.exports = function(S){
     name: this.manifest.name,
     getApi: function(router){
 
-      router.get('/cosa', function*(next){
-        this.body = 'El termino cosa es el 42 de smallcloud'
+      router.get('/resource/*', function*(next){
+
+        // XXX
+        console.log('rrr', this.path);
+
+        this.body = 'Smallcloud resource(s): ' + this.path.replace('/resource', '');
+
+
+      });
+
+      router.get('/schema/*', function*(next){
+
+        // XXX
+        console.log('sss', this.path);
+
+        this.body = 'Smallcloud schema for: ' + this.path.replace('/schema', '');
+
+
       });
 
       return router;
