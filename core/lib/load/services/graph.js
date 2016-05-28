@@ -71,18 +71,47 @@ var __walker = function(service){
 
 var nodeBase = {
 
-  _visitors: null,
-  _promise:  null,
+  //_visitors: null,
+  //_promise:  null,
+
+  //_resolver: ,
 
   visit: function(visitId, service){
 
-    // Promise singleton
-    if(!this._promise)
-      this._promise = Promise.resolve({isRootNode: true}); // TODO: feed undefined
+    // XXX
+    var that = this;
+    //if('undefined' !== typeof visitId){
+    //  console.log(' ');
+    //  console.log('---', visitId, 'is visiting', this.id, 'with', service);
+    //}
 
     // Init visitor reg?
     if(!this._visitors)
       this._visitors = {};
+
+
+    // Promise resolve fn carrier
+    //var boundResolver;
+    var resolverFn = function(srvApi){
+      //console.log('+++ Resolving', this.id, 'with', srvApi);
+      this.resolve(srvApi);
+    };
+
+    // Promise singleton
+    if(!this._promise)
+      this._promise = new Promise(function(resolve, reject){
+
+        // XXX
+        //console.log('  - first visit to', that.id, 'is from', visitId);
+
+        //var _resolve = function(result){
+        //  console.log('XXX', result);
+        //  resolve(result);
+        //};
+
+        // Bind resolver
+        that._resolver = resolverFn.bind({resolve: resolve, reject: reject, id: that.id}); // XXX
+      });
 
 
     // Acknowledge visit?
@@ -90,29 +119,33 @@ var nodeBase = {
       this._visitors[visitId] = service;
     }
 
+    // XXX
+    //console.log('---', this.id, 'status:', Object.keys(this._visitors), this.dependencies);
 
     // Some visit has to be the last...
     if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
-
-      // Build base S arg
-      //var s = {log: S.log};
-      //console.log('>>> S', S);
-      // TODO: Fix S undefined
 
       // Complete arg
       var s = _.assign({}, this._visitors, {log: S.log});
 
       // XXX
-      //console.log('--------- Running init on', this.id);
+      //console.log('DING', that._resolver);
 
-      // Run the service init generator
-      var srvApi = co.wrap(this.service.init).call(this.service, s);
+      var srvInit = co.wrap(this.service.init).bind(this.service, s);
 
-      // Resolve promise with promise
-      this._promise.then(function(){
+      srvInit().then(function(srvApi){
+        // XXX
+        //console.log(' ');
+        //console.log('>>>', that.id, 'initialized with', srvApi);
+
+        that._resolver(srvApi);
+
         return srvApi;
-      });
 
+      }).catch(function(e){
+        console.log('ERROR in graph srv init:', e);
+        console.log(e.stack);
+      });
     }
 
     // Always return a promise
@@ -129,19 +162,26 @@ var graph = module.exports = {
 
     var queue = depGraph.overallOrder();
 
-    var serviceApis = _.reduce(queue, function(apis, nodeId){
+    //var serviceApis = _.reduce(queue, function(apis, nodeId){
+    return _.reduce(queue, function(apis, nodeId){
 
       // Get node
       var node = graph.nodes[nodeId];
 
       // Visit the node
-      apis[nodeId] = node.visit().finally(function(srvApi){
+      apis[nodeId] = node.visit().then(function(srvApi){
+
+        // XXX
+        //console.log('+++ Finally visit children of', nodeId, srvApi);
 
         var children = depGraph.dependantsOf(nodeId);
 
         children.forEach(function(childId, position, _children){
 
           var child = graph.nodes[childId];
+
+          // XXX
+          //console.log('---', nodeId, 'is to visit', childId, 'with', srvApi);
 
           apis[childId] = child.visit(nodeId, srvApi);
 
@@ -154,20 +194,20 @@ var graph = module.exports = {
 
     }, {});
 
-    // XXX
-    //console.log('III serviceApis', serviceApis);
-
-    //var out = Promise.all(serviceApis);
-
-    //console.log('III', out);
-
-    return serviceApis;
-
-
-
-    // DEV
-    //return {isServiceApi: true};
-    //return out;
+    //// XXX
+    ////console.log('III serviceApis', serviceApis);
+    //
+    ////var out = Promise.all(serviceApis);
+    //
+    ////console.log('III', out);
+    //
+    //return serviceApis;
+    //
+    //
+    //
+    //// DEV
+    ////return {isServiceApi: true};
+    ////return out;
   },
 
   // Internal node map

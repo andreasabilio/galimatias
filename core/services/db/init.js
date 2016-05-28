@@ -4,6 +4,7 @@ var OrientDB = require('orientjs');
 module.exports = function(){
 
   // XXX
+  console.log(' ');
   console.log('    Running Database service init');
 
   //var server = OrientDB({
@@ -34,6 +35,11 @@ module.exports = function(){
   //  console.error('XXXXXX', e);
   //  server.close();
   //});
+
+  return {
+    isServiceApi: true,
+    name: this.manifest.name
+  };
 
 
 
