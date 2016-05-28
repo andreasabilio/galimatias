@@ -62,13 +62,15 @@ module.exports = function*(path, doFork){
   // Setup
   var candidates    = include({path: path, depth: 1});
   var validServices = _.reduce(candidates, graph.validate, {});
+
   //
   var serviceGraph  = _.reduce(validServices, graph.process, {});
+  var serviceApis = serviceGraph.init();
 
-  var serviceApis = yield serviceGraph.init().catch(function(e){
-    console.log('ERROR in services.index:', e);
-    console.log(e.stack);
-  });
+  //var serviceApis = yield serviceGraph.init().catch(function(e){
+  //  console.log('ERROR in services.index:', e);
+  //  console.log(e.stack);
+  //});
 
 
   //var installedServices = _.mapValues(validServices, graph.process);
@@ -82,6 +84,7 @@ module.exports = function*(path, doFork){
   //var serviceQueue      = _.mapValues(installedServices, loader.queue);
 
   // XXX
+  //console.log('*** candidates:', candidates);
   //console.log('*** services:', candidates);
   //console.log('*** valid:', validServices);
   //console.log('*** installed:', installedServices);

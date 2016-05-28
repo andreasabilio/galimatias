@@ -69,21 +69,70 @@ var __walker = function(service){
 };
 
 
-var Node = {
+var nodeBase = {
 
-  _visitors:    [],
-  dependencies: null,
-  id:           null,
+  _visitors: null,
+  _promise:  null,
 
-  visit: function(visitId){
+  visit: function(visitId, service){
+
+    // XXX
+    console.log('  ');
+    //console.log('---', visitId, 'is visiting', this.id);
+
+    // Promise singleton
+    if(!this._promise)
+      this._promise = Promise.resolve({isRootNode: true}); // TODO: feed undefined
+
+    // Init visitor reg?
+    if(!this._visitors)
+      this._visitors = {};
+
 
     // Acknowledge visit?
-    if(visitId)
-      this._visitors.push(visitId);
+    if(visitId && !(-1 === this.dependencies.indexOf(visitId))){
+
+      // XXX
+      //console.log('---', this.id, 'acknowledges a visit from', visitId);
+
+      this._visitors[visitId] = service;
+    }
+
+
+    // XXX
+    //console.log('---', !(-1 === this.dependencies.indexOf(visitId)));
+    //console.log('---', this.id, 'status:', Object.keys(this._visitors), this.dependencies);
+
 
     // Some visit has to be the last...
-    if( _.isEqual(this._visitors, this.dependencies) )
-      this.service.init();
+    if( _.isEqual(Object.keys(this._visitors), this.dependencies) ){
+
+      // Build base S arg
+      var s = {log: function(){
+        console.log('sss This is a log from a service init');
+      }};
+
+      // Complete arg
+      var S = _.assign({}, this._visitors, s);
+
+      // XXX
+      //console.log('--------- Running init on', this.id);
+
+      // Run the service init generator
+      var srvApi = co.wrap(this.service.init).call(this.service, S);
+
+      // Resolve promise with promise
+      this._promise.then(function(){
+        return srvApi;
+      });
+
+    }
+
+    // XXX
+    //console.log('PROMISE', this._promise);
+
+    // Always return a promise
+    return this._promise;
   }
 };
 
@@ -91,87 +140,129 @@ var Node = {
 
 var graph = module.exports = {
 
-  services: {},
+  // DEV
+  init: function(){
 
-  validate: function(services, candidate, srvId){
+    var queue = depGraph.overallOrder();
+
+    var serviceApis = _.reduce(queue, function(apis, nodeId){
+
+      // Get node
+      var node = graph.nodes[nodeId];
+
+      // XXX
+      //console.log('DING', node);
+
+      // Visit the node
+      apis[nodeId] = node.visit().then(function(srvApi){
+
+        var children = depGraph.dependantsOf(nodeId);
+
+        children.forEach(function(childId, position, _children){
+
+          var child = graph.nodes[childId];
+
+          apis[childId] = child.visit(nodeId, srvApi);
+
+        });
+
+        return srvApi;
+      });
+
+      return apis;
+
+    }, {});
+
+    // XXX
+    //console.log('III serviceApis', serviceApis);
+
+    // DEV
+    return {isServiceApi: true};
+  },
+
+  // Internal node map
+  nodes: {},
+
+  validate: function(nodes, candidate, srvId){
 
     // Service must have a manifest file
     if( !('manifest' in candidate) )
-      return services;
+      return nodes;
 
     // Service must have a init function
     if( !('init' in candidate) || !_.isFunction(candidate.init) )
-      return services;
+      return nodes;
 
     // Service must declare a valid version in manifest
     if( !('version' in candidate.manifest) )
-      return services;
+      return nodes;
 
     // Declared version must be valid
     if( _.isNull(semver.valid(candidate.manifest.version)) )
-      return services;
+      return nodes;
 
     // Add to dep graph
     depGraph.addNode(srvId);
 
-    // Assign id
-    candidate.id = srvId;
-
     // Add to services map
-    services[srvId] = candidate;
+    //nodes[srvId] = candidate;
+    nodes[srvId] = _.assign({}, nodeBase, {
+      id: srvId,
+      service: candidate,
+      dependencies: (candidate.manifest.dependencies)? Object.keys(candidate.manifest.dependencies) : []
+    });
 
     // Return collection
-    return services;
+    return nodes;
   },
 
 
-  process: function(_graph, service, srvId, services){
+  process: function(_graph, node, srvId, nodes){
 
     // XXX
-    console.log('### process:', srvId);
+    //console.log('### process:', srvId);
     //console.log('AAA process:', arguments);
 
 
     // Register in graph store
-    graph.services[srvId] = service;
+    graph.nodes[srvId] = node;
 
     // Update service
-    service.status = {
+    node.status = {
       activable: true,  // All services are assumed activable
       active: false     // All services are initially inactive
     };
 
     // Does service have any dependencies?
-    if( !('dependencies' in service.manifest) )
+    if( !('dependencies' in node) || _.isEmpty(node.dependencies) )
       return graph;
 
     // Process dependencies
-    service.status.activable = _.every(service.manifest.dependencies, function(version, depId){
+    node.status.activable = _.every(node.service.manifest.dependencies, function(version, depId){
 
       // Get required service
-      var dependency = services[depId];
-      //var dependency = _.find(services, {id: depId});
+      var dependency = nodes[depId];
 
       // Is dep installed?
       if( !dependency ) return false;
 
       // Valid version combination?
-      return semver.satisfies(dependency.manifest.version, version);
+      return semver.satisfies(dependency.service.manifest.version, version);
 
-    }, this);
+    });
 
     // XXX
-    //console.log('###', srvId, service.status.activable);
+    //console.log('###', srvId, node.status.activable);
 
 
     // Is service activable?
-    if( service.status.activable ){
+    if( node.status.activable ){
 
       // Register in graph store
-      graph.services[srvId] = service;
+      graph.nodes[srvId] = node;
 
       // Obtain dependencies ids
-      var deps = Object.keys(service.manifest.dependencies);
+      var deps = Object.keys(node.service.manifest.dependencies);
 
       // Have dependencies?
       if( _.isEmpty(deps) )
@@ -197,7 +288,7 @@ var graph = module.exports = {
 
 
 
-  init: function(){
+  _init: function(){
 
     // init local api store
     var api     = {};
@@ -214,9 +305,20 @@ var graph = module.exports = {
     //console.log('___ services', graph.services);
     console.log('___ rootId', queue);
 
-    var visitor = function(out, service){
+    var visitor = function(api, nodeId){
 
+      // Get node
+      var node     = graph.nodes[nodeId];
+      var children = depGraph.dependantsOf(nodeId) || [];
 
+      // Visit the node
+      api[nodeId] = node.visit.call(api).then(function(srvApi){
+        return children.forEach(children, function(childId){
+
+        });
+      });
+
+      return api.push();
     };
 
     var out = _.reduce(queue, visitor, {});

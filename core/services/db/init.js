@@ -4,7 +4,7 @@ var OrientDB = require('orientjs');
 module.exports = function(){
 
   // XXX
-  console.log('>>> Running DB core service init');
+  console.log('    Running Database service init');
 
   //var server = OrientDB({
   //  host: 'localhost',
