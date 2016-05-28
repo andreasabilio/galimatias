@@ -28,16 +28,16 @@ var core = module.exports = {
     // Parse and load config into S
     _.extend(S, _config, config);
 
-
+    S.services.core = yield S.load.services.call(S, S.config.paths.core.services, false);
 
     // Load and initialize core services
-    S.services.core = yield S.runInS(S.load.services, S.config.paths.core.services, false);
+    //S.services.core = yield S.runInS(S.load.services, S.config.paths.core.services, false);
 
     // XXX
-    console.log(' ');
-    console.log('----------------------------------------------');
-    console.log(' ');
-    console.log('S:', S);
+    //console.log(' ');
+    //console.log('----------------------------------------------');
+    //console.log(' ');
+    //console.log('S:', S);
     //console.log('Services:', S.services);
 
     // DEV

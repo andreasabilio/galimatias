@@ -147,6 +147,8 @@ var graph = module.exports = {
       if( _.isEmpty(deps) )
         return graph;
 
+      // XXX
+      console.log();
 
       // Register dep graph nodes
       deps.forEach(depGraph.addDependency.bind(depGraph, srvId));
