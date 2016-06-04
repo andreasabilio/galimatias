@@ -47,10 +47,16 @@ var nodeBase = {
     // Some visit has to be the last...
     if( !missing.length ){
 
+      // XXX
+      //console.log('---', this);
+
       // Complete arg
-      var s = _.assign({}, this._visitors, {log: S.log});
+      var s = _.assign({}, this._visitors, {log: S.log, id: this.id});
 
       var srvInit = co.wrap(this.service.init).bind(this.service, s);
+
+      // Log service init
+      S.log('info', 'Starting ' + this.service.manifest.name + ' service...');
 
       srvInit().then(this._resolver).catch(function(e){
         console.log('ERROR in graph srv init:', e);
@@ -94,7 +100,7 @@ var graph = module.exports = {
     // Add to services map
     nodes[srvId] = _.assign({}, nodeBase, {
       id: srvId,
-      service: candidate,
+      service: Object.assign(candidate, {id: srvId}),
       dependencies: (candidate.manifest.dependencies)? Object.keys(candidate.manifest.dependencies) : []
     });
 

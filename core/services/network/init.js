@@ -1,18 +1,18 @@
 
 module.exports = function(S){
 
-  //// XXX
-  //console.log(' ');
-  //console.log(' - Running Network service init');
-  ////console.log('    deps', Object.keys(this.manifest.dependencies));
-  ////console.log(' - S', S);
+  // Register all routes
+  S.http.routes.forEach(function(routes){
+    S.http.server.use(routes);
+  });
 
-  // Log
-  S.log('info', 'Starting ' + this.manifest.name + ' service...');
-
+  // DEV: Catch-all
+  S.http.server.use(function*(){
+    this.body = 'Hello from SmallCloud HTTP service catch-all!';
+  });
 
   // Start the http server
-  S.http.listen(4242);
+  S.http.server.listen(4242);
 
   return {
     isServiceApi: true,

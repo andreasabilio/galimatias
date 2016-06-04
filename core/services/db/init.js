@@ -50,7 +50,7 @@ var lib = {
 module.exports = function*(S){
 
   // Log
-  S.log('info', 'Starting ' + this.manifest.name + ' service...');
+  //S.log('info', 'Starting ' + this.manifest.name + ' service...');
 
   var server = OrientDB({
     host: 'localhost',

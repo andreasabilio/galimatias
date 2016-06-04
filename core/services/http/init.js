@@ -6,32 +6,16 @@ var Router = require('koa-router');
 
 module.exports = function*(S){
 
-  //// XXX
-  //console.log(' ');
-  //console.log(' - Running HTTP service init');
-  ////console.log('    deps', Object.keys(this.manifest.dependencies));
-  ////console.log(' - S', S);
-
-  // Log
-  S.log('info', 'Starting ' + this.manifest.name + ' service...');
-
-
   // Initialize http server
-  var http = koa();
+  var server = koa();
 
   // Static file serving
   var root = path.resolve(__dirname, '../../../static');
-  http.use(Static(root));
+  server.use(Static(root));
 
-  // Register resource and schema apis
-  var resRouter = new Router();
-  http.use(S.resource.getApi(resRouter).routes());
-
-  // DEV
-  http.use(function*(){
-    this.body = 'Hello from SmallCloud HTTP service catchall!';
-  });
-
-  return http;
+  return {
+    server: server,
+    routes: []
+  };
 
 };

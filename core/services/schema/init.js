@@ -1,15 +1,25 @@
 
+var Router = require('koa-router');
+
+
 module.exports = function*(S){
 
-  //// XXX
-  //console.log('  ');
-  //console.log(' - Running API service init');
-  ////console.log('    deps', Object.keys(this.manifest.dependencies));
-  //console.log(' - S', S);
-  ////console.log('*** this:', this);
+  // Router shorthand
+  var router = new Router({
+    prefix: '/' + this.id
+  });
 
-  // Log
-  S.log('info', 'Starting ' + this.manifest.name + ' service...');
+  // Register schema api
+  router.get('/*', function*(next){
+
+    this.body = 'Smallcloud schema for: ' + this.path.replace('/schema', '');
+
+  });
+
+
+  // Register routes
+  S.http.routes.push(router.routes());
+
 
   return {
     isServiceApi: true,

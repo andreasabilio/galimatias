@@ -2,6 +2,5 @@
   "name": "core http",
   "version": "0.1.0",
   "dependencies": {
-    "resource": "0.1.0"
   }
 }
