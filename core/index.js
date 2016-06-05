@@ -26,12 +26,13 @@ var core = module.exports = {
     console.log('  ');
 
     // Parse and load config into S
-    _.extend(S, _config, config);
+    Object.assign(S, _config, config);   // TODO: Omit database config
+
+    // Load database
+    Object.assign(S, S.load.database(config));
 
     // Load and init core services
     var services = yield S.load.services.call(S, S.config.paths.core.services, false);
-
-    // Register core services
     Object.assign(S, services);
 
 
